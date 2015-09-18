@@ -1,10 +1,8 @@
-package build.pluto.buildmonto;
+package build.pluto.example;
 
 import build.pluto.builder.BuildRequest;
 import build.pluto.builder.Builder;
 import build.pluto.builder.BuilderFactory;
-import build.pluto.buildgit.GitInput;
-import build.pluto.buildgit.GitRemoteSynchronizer;
 import build.pluto.buildjava.JavaBuilder;
 import build.pluto.buildjava.JavaInput;
 import build.pluto.buildjava.util.FileExtensionFilter;
@@ -32,7 +30,7 @@ public class GenerateAndCompile extends Builder<GACInput, None> {
 
     @Override
     protected File persistentPath(GACInput input) {
-        return new File("gac.dep");
+        return new File(input.src, "gac.dep");
     }
 
     @Override
@@ -42,28 +40,23 @@ public class GenerateAndCompile extends Builder<GACInput, None> {
 
     @Override
     protected None build(GACInput input) throws Throwable {
-
-        GitInput gitInput = new GitInput.Builder(input.src, "https://github.com/andiderp/cycle.git").build();
-        this.requireBuild(GitRemoteSynchronizer.factory, gitInput);
-
-        List<BuildRequest<?, ?, ?, ?>> requiredUnits = new ArrayList<>();
+        JavaFileGenerator.Input jfgInput = new JavaFileGenerator.Input(input.src);
+        this.requireBuild(JavaFileGenerator.factory, jfgInput);
+        List<BuildRequest<?, ?, ?, ?>> requiredUnits = new ArrayList();
         requiredUnits.add(
-                new BuildRequest(
-                    GitRemoteSynchronizer.factory,
-                    gitInput));
+                new BuildRequest<>(JavaFileGenerator.factory, jfgInput));
 
         FileFilter javaFileFilter = new FileExtensionFilter("java");
 
         List<Path> javaSrcPathList =
             FileCommands.listFilesRecursive(input.src.toPath(), javaFileFilter);
 
-        List<File> sourcePath =
-            Arrays.asList(new File(input.src, "src"));
+        List<File> srcpath = Arrays.asList(new File(input.src, "src"));
         for (Path p : javaSrcPathList) {
             JavaInput javaInput = new JavaInput(
                     p.toFile(),
                     input.target,
-                    sourcePath,
+                    srcpath,
                     null,
                     null,
                     requiredUnits);
