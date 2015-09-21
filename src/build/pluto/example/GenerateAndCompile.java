@@ -16,6 +16,7 @@ import build.pluto.builder.BuilderFactory;
 import build.pluto.builder.BuilderFactoryFactory;
 import build.pluto.buildjava.JavaBuilder;
 import build.pluto.buildjava.JavaInput;
+import build.pluto.buildjava.compiler.JavaCompiler;
 import build.pluto.buildjava.compiler.JavacCompiler;
 import build.pluto.buildjava.util.FileExtensionFilter;
 import build.pluto.output.None;
@@ -42,7 +43,8 @@ public class GenerateAndCompile extends Builder<GACInput, None> {
     @Override
     protected None build(GACInput input) throws Throwable {
         JavaFileGenerator.Input jfgInput = new JavaFileGenerator.Input(input.src);
-        this.requireBuild(JavaFileGenerator.factory, jfgInput);
+        BuildRequest<?,?,?,?> req = new BuildRequest<>(JavaFileGenerator.factory, jfgInput);
+        requireBuild(req);
 
         FileFilter javaFileFilter = new FileExtensionFilter("java");
 
@@ -51,14 +53,15 @@ public class GenerateAndCompile extends Builder<GACInput, None> {
 
         List<File> srcpath = Arrays.asList(new File(input.src, "src"));
         for (Path p : javaSrcPathList) {
-            JavaInput javaInput = new JavaInput(
-                    p.toFile(),
-                    input.target,
-                    srcpath,
-                    null,
-                    null,
-                    Collections.singletonList(new BuildRequest<>(JavaFileGenerator.factory, jfgInput)),
-                    JavacCompiler.instance);
+			JavaInput javaInput = new JavaInput(
+					p.toFile(), 
+					input.target,
+					srcpath, 
+					null, 
+					null,
+					Collections.<BuildRequest<?, ?, ?, ?>> singletonList(req),
+					JavacCompiler.instance);
+
             requireBuild(JavaBuilder.request(javaInput));
         }
 
