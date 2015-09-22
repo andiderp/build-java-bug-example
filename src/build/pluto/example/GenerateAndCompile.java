@@ -42,24 +42,21 @@ public class GenerateAndCompile extends Builder<GACInput, None> {
 
     @Override
     protected None build(GACInput input) throws Throwable {
-        JavaFileGenerator.Input jfgInput = new JavaFileGenerator.Input(input.src);
-        BuildRequest<?,?,?,?> req = new BuildRequest<>(JavaFileGenerator.factory, jfgInput);
-        requireBuild(req);
-
         FileFilter javaFileFilter = new FileExtensionFilter("java");
 
         List<Path> javaSrcPathList =
             FileCommands.listFilesRecursive(input.src.toPath(), javaFileFilter);
 
+        List<File> classPath = Arrays.asList(new File("lib/jeromq-0.3.4.jar"), new File("lib/json-simple-1.1.1.jar"));
         List<File> srcpath = Arrays.asList(new File(input.src, "src"));
         for (Path p : javaSrcPathList) {
 			JavaInput javaInput = new JavaInput(
 					p.toFile(), 
 					input.target,
 					srcpath, 
-					null, 
+					classPath, 
 					null,
-					Collections.<BuildRequest<?, ?, ?, ?>> singletonList(req),
+					null,
 					JavacCompiler.instance);
 
             requireBuild(JavaBuilder.request(javaInput));
