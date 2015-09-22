@@ -3,7 +3,7 @@ package build.pluto.example;
 import build.pluto.builder.BuildRequest;
 import build.pluto.builder.Builder;
 import build.pluto.builder.BuilderFactory;
-
+import build.pluto.builder.BuilderFactoryFactory;
 import build.pluto.output.None;
 
 import java.io.File;
@@ -12,8 +12,8 @@ import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import java.util.List;
+
 import org.sugarj.common.FileCommands;
 
 public class JavaFileGenerator extends Builder<JavaFileGenerator.Input, None> {
@@ -27,20 +27,20 @@ public class JavaFileGenerator extends Builder<JavaFileGenerator.Input, None> {
     }
 
     public static BuilderFactory<Input, None, JavaFileGenerator> factory
-        = BuilderFactory.of(JavaFileGenerator.class, JavaFileGenerator.Input.class);
+        = BuilderFactoryFactory.of(JavaFileGenerator.class, JavaFileGenerator.Input.class);
 
     public JavaFileGenerator(Input input) {
         super(input);
     }
 
     @Override
-    protected File persistentPath(Input input) {
+	public File persistentPath(Input input) {
         return new File(input.location, "jfg.dep");
     }
 
     @Override
     protected String description(Input input) {
-        return "compile java";
+        return "generate java";
     }
 
     @Override
