@@ -32,7 +32,7 @@ public class GenerateAndCompile extends Builder<GACInput, None> {
 
     @Override
 	public File persistentPath(GACInput input) {
-        return new File(input.src, "gac.dep");
+        return new File(input.target, "gac.dep");
     }
 
     @Override
@@ -44,23 +44,23 @@ public class GenerateAndCompile extends Builder<GACInput, None> {
     protected None build(GACInput input) throws Throwable {
         FileFilter javaFileFilter = new FileExtensionFilter("java");
 
-        List<Path> javaSrcPathList =
-            FileCommands.listFilesRecursive(input.src.toPath(), javaFileFilter);
+        List<Path> javaSrcPathList = FileCommands.listFilesRecursive(input.src.toPath(), javaFileFilter);
+        List<File> javaSrcFileList = new ArrayList<>(javaSrcPathList.size());
+        for (Path p : javaSrcPathList)
+        	javaSrcFileList.add(p.toFile());
 
         List<File> classPath = Arrays.asList(new File("lib/jeromq-0.3.4.jar"), new File("lib/json-simple-1.1.1.jar"));
         List<File> srcpath = Arrays.asList(new File(input.src, "src"));
-        for (Path p : javaSrcPathList) {
-			JavaInput javaInput = new JavaInput(
-					p.toFile(), 
-					input.target,
-					srcpath, 
-					classPath, 
-					null,
-					null,
-					JavacCompiler.instance);
+		JavaInput javaInput = new JavaInput(
+				javaSrcFileList, 
+				input.target,
+				srcpath, 
+				classPath, 
+				Arrays.asList("-source", "1.8"),
+				null,
+				JavacCompiler.instance);
 
-            requireBuild(JavaBuilder.request(javaInput));
-        }
+        requireBuild(JavaBuilder.request(javaInput));
 
         return None.val;
     }
